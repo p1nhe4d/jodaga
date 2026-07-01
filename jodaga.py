@@ -18,6 +18,7 @@ import dns.resolver
 
 try:
     from playwright.async_api import async_playwright
+
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
     PLAYWRIGHT_AVAILABLE = False
@@ -33,6 +34,7 @@ USER_AGENTS = [
 MAX_CONCURRENT = 60
 TIMEOUT = 10
 SEM = asyncio.Semaphore(MAX_CONCURRENT)
+
 
 # ============ TERMINAL COLORS ============
 class Colors:
@@ -70,14 +72,77 @@ def print_banner():
 
 # ============ SUBDOMAIN ENUMERATION ============
 SUBDOMAIN_WORDLIST = [
-    "www", "mail", "ftp", "localhost", "webmail", "smtp", "pop", "ns1", "webdisk",
-    "ns2", "cpanel", "whm", "autodiscover", "autoconfig", "m", "imap", "test",
-    "ns", "blog", "pop3", "dev", "www2", "admin", "forum", "news", "vpn", "ns3",
-    "mail2", "new", "mysql", "old", "lists", "support", "mobile", "mx", "static",
-    "docs", "beta", "shop", "sql", "secure", "demo", "cp", "calendar", "wiki",
-    "web", "media", "email", "images", "img", "www1", "intranet", "help", "ns4",
-    "download", "dns", "api", "app", "gateway", "apps", "data", "remote", "svn",
-    "git", "crm", "panel", "portal", "monitor", "fw", "proxy", "webserver"
+    "www",
+    "mail",
+    "ftp",
+    "localhost",
+    "webmail",
+    "smtp",
+    "pop",
+    "ns1",
+    "webdisk",
+    "ns2",
+    "cpanel",
+    "whm",
+    "autodiscover",
+    "autoconfig",
+    "m",
+    "imap",
+    "test",
+    "ns",
+    "blog",
+    "pop3",
+    "dev",
+    "www2",
+    "admin",
+    "forum",
+    "news",
+    "vpn",
+    "ns3",
+    "mail2",
+    "new",
+    "mysql",
+    "old",
+    "lists",
+    "support",
+    "mobile",
+    "mx",
+    "static",
+    "docs",
+    "beta",
+    "shop",
+    "sql",
+    "secure",
+    "demo",
+    "cp",
+    "calendar",
+    "wiki",
+    "web",
+    "media",
+    "email",
+    "images",
+    "img",
+    "www1",
+    "intranet",
+    "help",
+    "ns4",
+    "download",
+    "dns",
+    "api",
+    "app",
+    "gateway",
+    "apps",
+    "data",
+    "remote",
+    "svn",
+    "git",
+    "crm",
+    "panel",
+    "portal",
+    "monitor",
+    "fw",
+    "proxy",
+    "webserver",
 ]
 
 
@@ -130,7 +195,7 @@ async def port_scan_python(target, ports="1-1000"):
                     "port": port,
                     "service": "unknown",
                     "protocol": "tcp",
-                    "state": "open"
+                    "state": "open",
                 }
             except:
                 return None
@@ -153,7 +218,7 @@ async def detect_tech(session, url):
                 "powered_by": response.headers.get("X-Powered-By", "unknown"),
                 "cms": "unknown",
                 "framework": "unknown",
-                "cdn": "unknown"
+                "cdn": "unknown",
             }
 
             html = await response.text()
@@ -170,7 +235,10 @@ async def detect_tech(session, url):
                 tech["cdn"] = "Cloudflare"
             elif "x-amz-request-id" in response.headers:
                 tech["cdn"] = "AWS CloudFront"
-            elif "x-served-by" in response.headers and "fastly" in response.headers["x-served-by"].lower():
+            elif (
+                "x-served-by" in response.headers
+                and "fastly" in response.headers["x-served-by"].lower()
+            ):
                 tech["cdn"] = "Fastly"
 
             return tech
@@ -190,20 +258,24 @@ async def get_headers(session, url):
                 "X-Frame-Options",
                 "X-Content-Type-Options",
                 "Referrer-Policy",
-                "Permissions-Policy"
+                "Permissions-Policy",
             ]
             header_res = []
             print(f"\n{Colors.BLUE}[*] HEADERS FOR {url}{Colors.RESET}")
             for h in critical:
                 if h in headers:
                     print(f"  {Colors.GREEN}[+]{Colors.RESET} {h}: {headers.get(h)}")
-                    header_res.append({"header": h, "value": headers.get(h), "status": "implemented"})
+                    header_res.append(
+                        {"header": h, "value": headers.get(h), "status": "implemented"}
+                    )
                 else:
                     print(f"  {Colors.RED}[-]{Colors.RESET} {h}: MISSING")
                     header_res.append({"header": h, "value": None, "status": "missing"})
             return header_res
     except Exception as e:
-        print(f"{Colors.RED}[-] Error fetching headers: {type(e).__name__}: {e}{Colors.RESET}")
+        print(
+            f"{Colors.RED}[-] Error fetching headers: {type(e).__name__}: {e}{Colors.RESET}"
+        )
         return None
 
 
@@ -225,7 +297,7 @@ async def check_path(session, url, path):
                         "path": path,
                         "status": response.status,
                         "size": size_str,
-                        "url": full_url
+                        "url": full_url,
                     }
         except Exception:
             pass
@@ -250,7 +322,9 @@ async def find_files(session, url, ext_file, wordlist):
             print(f"{Colors.RED}[-] No valid paths found!{Colors.RESET}")
             return []
 
-        print(f"\n{Colors.BLUE}[*] Scanning {len(lines)} paths with {MAX_CONCURRENT} parallel requests...{Colors.RESET}\n")
+        print(
+            f"\n{Colors.BLUE}[*] Scanning {len(lines)} paths with {MAX_CONCURRENT} parallel requests...{Colors.RESET}\n"
+        )
 
         tasks = [check_path(session, url, line) for line in lines]
         start_time = datetime.now()
@@ -266,7 +340,9 @@ async def find_files(session, url, ext_file, wordlist):
             status_colored = color_status(item["status"])
             print(f"{item['path']:<45} {status_colored:<8} {item['size']:<10}")
 
-        print(f"\n{Colors.GREEN}[+] Found {len(found)} paths in {elapsed:.2f}s{Colors.RESET}")
+        print(
+            f"\n{Colors.GREEN}[+] Found {len(found)} paths in {elapsed:.2f}s{Colors.RESET}"
+        )
         return found
 
     except FileNotFoundError:
@@ -286,12 +362,17 @@ async def take_screenshot(url, output_dir="screenshots"):
         return None
 
     os.makedirs(output_dir, exist_ok=True)
-    filename = url.replace("https://", "").replace("http://", "").replace("/", "_").replace(":", "_")
+    filename = (
+        url.replace("https://", "")
+        .replace("http://", "")
+        .replace("/", "_")
+        .replace(":", "_")
+    )
     filepath = f"{output_dir}/{filename}.png"
 
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True, args=['--no-sandbox'])
+            browser = await p.chromium.launch(headless=True, args=["--no-sandbox"])
             page = await browser.new_page()
             await page.goto(url, timeout=15000, wait_until="load")
             await page.screenshot(path=filepath, full_page=True)
@@ -312,7 +393,15 @@ def save_json(results, filename):
 
 
 # ============ SCAN TARGET ============
-async def scan_target(target, wordlist, ports="1-500", output="results.json", proxy=None, screenshots=False, screenshot_dir="screenshots"):
+async def scan_target(
+    target,
+    wordlist,
+    ports="1-500",
+    output="results.json",
+    proxy=None,
+    screenshots=False,
+    screenshot_dir="screenshots",
+):
     """Scan a single target"""
     print(f"\n{Colors.CYAN}{'=' * 70}{Colors.RESET}")
     print(f"{Colors.CYAN}[*] SCANNING: {target}{Colors.RESET}")
@@ -331,16 +420,14 @@ async def scan_target(target, wordlist, ports="1-500", output="results.json", pr
         "tech_stack": {},
         "headers": [],
         "paths": [],
-        "screenshots": []
+        "screenshots": [],
     }
 
     session_headers = {"User-Agent": random.choice(USER_AGENTS)}
     connector = aiohttp.TCPConnector(ssl=False)
 
     async with aiohttp.ClientSession(
-        headers=session_headers,
-        connector=connector,
-        proxy=proxy
+        headers=session_headers, connector=connector, proxy=proxy
     ) as session:
         # 1. Subdomains
         subdomains = await enumerate_subdomains(domain)
@@ -379,11 +466,13 @@ async def scan_target(target, wordlist, ports="1-500", output="results.json", pr
                 paths_result = await find_files(session, web_url, None, wordlist)
                 if paths_result:
                     for path in paths_result:
-                        path['port'] = wp['port']
+                        path["port"] = wp["port"]
                     all_paths.extend(paths_result)
         else:
-            print(f"{Colors.YELLOW}[!] No web ports found, trying defaults...{Colors.RESET}")
-            for proto in ['https', 'http']:
+            print(
+                f"{Colors.YELLOW}[!] No web ports found, trying defaults...{Colors.RESET}"
+            )
+            for proto in ["https", "http"]:
                 url = f"{proto}://{domain}"
                 print(f"{Colors.BLUE}[*] Trying {url}{Colors.RESET}")
                 paths_result = await find_files(session, url, None, wordlist)
@@ -399,8 +488,7 @@ async def scan_target(target, wordlist, ports="1-500", output="results.json", pr
             for path in all_paths:
                 if path["status"] == 200:
                     screenshot_path = await take_screenshot(
-                        path["url"],
-                        output_dir=f"{screenshot_dir}/{domain}"
+                        path["url"], output_dir=f"{screenshot_dir}/{domain}"
                     )
                     if screenshot_path:
                         path["screenshot"] = screenshot_path
@@ -423,53 +511,62 @@ Examples:
   python3 scanner.py -t targets.txt -w lista.txt -o scan_results.json
   python3 scanner.py -t target.org -w lista.txt --proxy http://127.0.0.1:8080
   python3 scanner.py -t target.org -w lista.txt --screenshots
-        """
+        """,
     )
 
     parser.add_argument(
-        "-t", "--target", required=True,
-        help="Target domain or file with list of targets"
+        "-t",
+        "--target",
+        required=True,
+        help="Target domain or file with list of targets",
     )
     parser.add_argument(
-        "-w", "--wordlist", default="list.txt",
-        help="Wordlist file for path scanning (default: list.txt)"
+        "-w",
+        "--wordlist",
+        default="list.txt",
+        help="Wordlist file for path scanning (default: list.txt)",
     )
     parser.add_argument(
-        "-p", "--ports", default="1-1000",
-        help="Port range for scanning (default: 1-1000)"
+        "-p",
+        "--ports",
+        default="1-1000",
+        help="Port range for scanning (default: 1-1000)",
     )
     parser.add_argument(
-        "-o", "--output", default="results.json",
-        help="Output JSON file (default: results.json)"
+        "-o",
+        "--output",
+        default="results.json",
+        help="Output JSON file (default: results.json)",
     )
     parser.add_argument(
-        "--proxy", default=None,
-        help="Proxy URL (e.g., http://127.0.0.1:8080 for Burp)"
+        "--proxy", default=None, help="Proxy URL (e.g., http://127.0.0.1:8080 for Burp)"
     )
     parser.add_argument(
-        "--screenshots", action="store_true",
-        help="Take screenshots of found pages (requires playwright)"
+        "--screenshots",
+        action="store_true",
+        help="Take screenshots of found pages (requires playwright)",
     )
     parser.add_argument(
-        "--screenshot-dir", default="screenshots",
-        help="Directory for screenshots (default: screenshots)"
+        "--screenshot-dir",
+        default="screenshots",
+        help="Directory for screenshots (default: screenshots)",
     )
     parser.add_argument(
-        "--no-subdomains", action="store_true",
-        help="Skip subdomain enumeration"
+        "--no-subdomains", action="store_true", help="Skip subdomain enumeration"
     )
 
     args = parser.parse_args()
 
     if args.screenshots and not PLAYWRIGHT_AVAILABLE:
-        print(f"{Colors.YELLOW}[!] Playwright not installed. Screenshots disabled.{Colors.RESET}")
+        print(
+            f"{Colors.YELLOW}[!] Playwright not installed. Screenshots disabled.{Colors.RESET}"
+        )
         args.screenshots = False
     # Load targets
     if args.target.endswith(".txt"):
         with open(args.target, "r") as f:
             targets = [
-                line.strip() for line in f
-                if line.strip() and not line.startswith("#")
+                line.strip() for line in f if line.strip() and not line.startswith("#")
             ]
     else:
         targets = [args.target]
@@ -498,7 +595,7 @@ Examples:
                 args.output,
                 args.proxy,
                 args.screenshots,
-                args.screenshot_dir
+                args.screenshot_dir,
             )
 
     tasks = [scan_with_semaphore(t) for t in targets]
@@ -509,7 +606,7 @@ Examples:
         "version": "1.0",
         "timestamp": datetime.now().isoformat(),
         "total_targets": len(targets),
-        "results": all_results
+        "results": all_results,
     }
 
     save_json(final_results, args.output)
