@@ -250,7 +250,9 @@ async def detect_tech(session, url):
 async def get_headers(session, url):
     """Check security headers"""
     try:
-        async with session.get(url, timeout=TIMEOUT, ssl=False) as response:
+        async with session.get(
+            f"https://{url}", timeout=TIMEOUT, ssl=False
+        ) as response:
             headers = response.headers
             critical = [
                 "Content-Security-Policy",
