@@ -17,8 +17,9 @@ Advanced Recon Scanner for Security Professionals
 ## Installation
 
 # Clone the repository
-git clone https://github.com/p1nhe4d/jodaga.git
-cd jodaga
+- git clone https://github.com/p1nhe4d/jodaga.git
+
+- cd jodaga
 
 # Install dependencies
 pip install -r requirements.txt
