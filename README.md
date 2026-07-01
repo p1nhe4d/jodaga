@@ -16,33 +16,33 @@ Advanced Recon Scanner for Security Professionals
 
 ## Installation
 
-# Clone the repository
+### Clone the repository
 - git clone https://github.com/p1nhe4d/jodaga.git
 
 - cd jodaga
 
-# Install dependencies
+### Install dependencies
 pip install -r requirements.txt
 
-# Install Playwright for screenshots (optional)
+### Install Playwright for screenshots (optional)
 playwright install chromium
 
 
 ## Usage
 
-# Basic scan
+### Basic scan
 python3 jodaga.py -t example.com -w wordlist.txt
 
-# With proxy (Burp Suite)
+### With proxy (Burp Suite)
 python3 jodaga.py -t example.com -w wordlist.txt --proxy http://127.0.0.1:8080
 
-# With screenshots
+### With screenshots
 python3 jodaga.py -t example.com -w wordlist.txt --screenshots
 
-# Multi-target scan
+### Multi-target scan
 python3 jodaga.py -t targets.txt -w wordlist.txt -o results.json
 
-# Custom port range
+### Custom port range
 python3 jodaga.py -t example.com -w wordlist.txt -p 80,443,8080
 
 
